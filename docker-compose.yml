@@ -1,0 +1,108 @@
+version: "3.9"
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:15.2
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: postgres
+
+  zookeeper:
+    container_name: zookeeper
+    image: confluentinc/cp-zookeeper:6.2.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    container_name: kafka
+    image: confluentinc/cp-kafka:6.2.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9093:9093"
+      - "9092:9092"
+    expose:
+      - "9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT_HOST://localhost:9093,PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  backend:
+    container_name: backend
+    image: maven:3.9-eclipse-temurin-20-alpine
+    depends_on:
+      - postgres
+    user: ${UID}
+    volumes:
+      - ./backend/:/project/
+    working_dir: /project/
+    environment:
+      DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
+      DATASOURCE_USER: admin
+      DATASOURCE_PWD: 1234
+    ports:
+      - "5000:5000"
+    command: mvn -Dmaven.repo.local=./.m2/repository spring-boot:run -Dspring-boot.run.profiles=docker
+
+  frontend:
+    container_name: frontend
+    image: node:16.19.1-alpine3.17
+    user: ${UID}
+    volumes:
+      - ./frontend/:/project/
+    working_dir: /project/
+    environment:
+      BACKEND_URL: http://backend:5000
+    ports:
+      - "5001:5001"
+    command: /bin/sh -c "
+      npm install 
+      && npm run start
+      "
+
+  text_summarizer:
+    container_name: text_summarizer
+    image: python:3.10-slim
+    user: ${UID}
+    volumes:
+      - ./text_summarizer/:/project/
+    working_dir: /project/
+    command: /bin/bash -c "
+      python -m venv docker_venv
+      && source ./docker_venv/bin/activate
+      && pip install -r requirements.txt
+      && python ./src/app.py
+      "
+
+  documentation:
+    container_name: documentation
+    image: latex
+    build: images/latex
+    user: ${UID}
+    volumes:
+      - ./documentation/:/project/
+    working_dir: /project/
+    ports:
+      - "5002:5002"
+    command: /bin/sh -c "
+      rm -rf out 
+      && mkdir out 
+      && pdflatex -output-directory out src/course_work.tex 
+      && echo Compiled 
+      && cd out 
+      && python -m SimpleHTTPServer 5002
+      "
+
+networks:
+  default:
+    name: default_network

@@ -1,0 +1,7 @@
+/.idea/
+/backend/target/
+/frontend/package-lock.json
+/frontend/node_modules/
+/documentation/out/
+/backend/.m2/
+/text_summarizer/docker_venv/
