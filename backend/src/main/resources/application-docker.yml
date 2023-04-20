@@ -1,4 +1,0 @@
-spring.datasource:
-  url: ${DATASOURCE_URL}
-  username: ${DATASOURCE_USER}
-  password: ${DATASOURCE_PWD}

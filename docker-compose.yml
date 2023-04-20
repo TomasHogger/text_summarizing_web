@@ -50,9 +50,10 @@ services:
       DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
       DATASOURCE_USER: admin
       DATASOURCE_PWD: 1234
+      KAFKA_SERVER: kafka:9092
     ports:
       - "5000:5000"
-    command: mvn -Dmaven.repo.local=./.m2/repository spring-boot:run -Dspring-boot.run.profiles=docker
+    command: mvn -Dmaven.repo.local=./.m2/repository spring-boot:run
 
   frontend:
     container_name: frontend
