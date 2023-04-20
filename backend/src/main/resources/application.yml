@@ -18,6 +18,11 @@ spring:
 
 server.port: 5000
 
+logging:
+  level:
+    org:
+      springframework: DEBUG
+
 springdoc:
   api-docs:
     path: /api-docs
