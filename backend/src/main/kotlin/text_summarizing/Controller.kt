@@ -23,7 +23,7 @@ class Controller(
     fun getAllSummarizing(@PageableDefault(size = 20) pageable: Pageable) =
             pageable
                     .apply(pageableValidator::validate)
-                    .let { summarizedTextRep.findAllByUserOrderByTimeCreateUtc(userService.getCurrentUser(), it) }
+                    .let { summarizedTextRep.findAllByUserOrderByTimeCreateUtcDesc(userService.getCurrentUser(), it) }
                     .let { ResponseEntity.ok(it) }
 
     @PostMapping("summarize")

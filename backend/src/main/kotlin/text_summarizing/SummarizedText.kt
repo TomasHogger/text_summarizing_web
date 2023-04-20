@@ -37,7 +37,7 @@ data class SummarizedTextEntity(
 
 @Repository
 interface SummarizedTextRep : JpaRepository<SummarizedTextEntity, Long> {
-    fun findAllByUserOrderByTimeCreateUtc(user: UserEntity, pageable: Pageable): List<SummarizedTextEntity>
+    fun findAllByUserOrderByTimeCreateUtcDesc(user: UserEntity, pageable: Pageable): List<SummarizedTextEntity>
     fun findByTextHash(textHash: String): Optional<SummarizedTextEntity>
 }
 
