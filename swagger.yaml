@@ -1,0 +1,149 @@
+openapi: 3.0.3
+info:
+  title: Backend
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+tags:
+  - name: api
+    description: Main api
+paths:
+  /api/registration:
+    post:
+      tags:
+        - api
+      summary: Registre new user
+      description: Registre new user
+      responses:
+        '200':
+          description: New user is created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Value for login's parameter 'username'
+  /api/login:
+    post:
+      tags:
+        - api
+      summary: Login
+      description: Login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+              properties:
+                username:
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: Successfully authenticated
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: JSESSIONID=abcde12345; Path=/; HttpOnly
+        '403':
+          description: User isn't found
+  /api/summarize:
+    post:
+      tags:
+        - api
+      summary: Summarize text
+      description: Summarize text
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+        required: true
+      responses:
+        '200':
+          description: File add to summarize queue
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - cookieAuth: []
+  /api/get_all_summarizing:
+    get:
+      tags:
+        - api
+      summary: Get all summirizing requests
+      description: Get all summirizing requests
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 0
+          description: Page
+          required: false
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 20
+            maximum: 1000
+          description: Size of page
+          required: false
+      responses:
+        '200':
+          description: List of summirizing requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalElements:
+                    type: number
+                  content:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: number
+                        user:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                        textHash:
+                          type: string
+                        resultSummarizing:
+                          type: string
+                        timeCreateUtc:
+                          type: number
+                        timeSummarizingUtc:
+                          type: number
+                        fileName:
+                          type: string
+                        summarizeStatus:
+                          type: string
+                          enum: [PENDING, SUCCESS, ERROR]
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - cookieAuth: []
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: JSESSIONID
+  responses:
+    UnauthorizedError:
+      description: User isn't authenticated

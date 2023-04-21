@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.kafka.annotation.KafkaListener
@@ -32,12 +33,21 @@ data class SummarizedTextEntity(
         @Column(name = "time_summarizing_utc")
         var timeSummarizingUtc: Long? = null,
         @Column(name = "file_name", nullable = false)
-        val fileName: String
+        val fileName: String,
+        @Column(name = "summarize_status", nullable = false, length = 8)
+        @Enumerated(EnumType.STRING)
+        var summarizeStatus: SummarizeStatus = SummarizeStatus.PENDING
 )
+
+enum class SummarizeStatus {
+    PENDING,
+    SUCCESS,
+    ERROR
+}
 
 @Repository
 interface SummarizedTextRep : JpaRepository<SummarizedTextEntity, Long> {
-    fun findAllByUserOrderByTimeCreateUtcDesc(user: UserEntity, pageable: Pageable): List<SummarizedTextEntity>
+    fun findAllByUserOrderByTimeCreateUtcDesc(user: UserEntity, pageable: Pageable): Page<SummarizedTextEntity>
     fun findByTextHash(textHash: String): Optional<SummarizedTextEntity>
 }
 
@@ -74,7 +84,13 @@ class SummarizeService(
                     .let {
                         summarizedTextRep.findById(it.id).orElseThrow().apply {
                             timeSummarizingUtc = Instant.now().toEpochMilli()
-                            resultSummarizing = it.text
+
+                            if (it.error) {
+                                summarizeStatus = SummarizeStatus.ERROR
+                            } else {
+                                summarizeStatus = SummarizeStatus.SUCCESS
+                                resultSummarizing = it.text
+                            }
                         }
                     }
                     .let(summarizedTextRep::save)
@@ -84,4 +100,4 @@ class SummarizeService(
 
 data class KafkaSummarizeRequest(val id: Long, val text: String)
 
-data class KafkaSummarizeResponse(val id: Long, val text: String)
+data class KafkaSummarizeResponse(val id: Long, val text: String?, val error: Boolean)

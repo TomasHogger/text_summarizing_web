@@ -25,7 +25,7 @@ class App {
         http
                 .authorizeHttpRequests {
                     with(it) {
-                        requestMatchers("/api-docs/**", "/swagger-ui.html", "/swagger-ui/**", "/login", "/registration").permitAll()
+                        requestMatchers("/api/login", "/api/registration").permitAll()
                         anyRequest().authenticated()
                     }
                 }
@@ -49,15 +49,10 @@ class App {
                 })
 
                 .formLogin()
-                .loginPage("/login")
-                .successHandler{ _, response, _ -> response.status = HttpServletResponse.SC_OK }
+                .loginPage("/api/login")
+                .successHandler { _, response, _ -> response.status = HttpServletResponse.SC_OK }
                 .failureHandler { _, response, _ -> response.status = HttpServletResponse.SC_FORBIDDEN }
                 .permitAll()
-                .and()
-
-                .logout()
-                .invalidateHttpSession(true)
-                .logoutUrl("/logout")
                 .and()
 
                 .exceptionHandling()
@@ -65,7 +60,7 @@ class App {
                 .accessDeniedHandler { _, response, _ -> response.status = HttpServletResponse.SC_FORBIDDEN }
                 .and()
 
-                .csrf().disable();
+                .csrf().disable()
         return http.build()
     }
 }

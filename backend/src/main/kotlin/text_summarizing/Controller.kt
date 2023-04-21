@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
 @RestController
+@RequestMapping("/api")
 class Controller(
         @Autowired val userService: UserService,
         @Autowired val summarizedTextRep: SummarizedTextRep,
@@ -19,14 +20,14 @@ class Controller(
     @PostMapping("/registration")
     fun registration() = userService.createNewUser()
 
-    @GetMapping("get_all_summarizing")
+    @GetMapping("/get_all_summarizing")
     fun getAllSummarizing(@PageableDefault(size = 20) pageable: Pageable) =
             pageable
                     .apply(pageableValidator::validate)
                     .let { summarizedTextRep.findAllByUserOrderByTimeCreateUtcDesc(userService.getCurrentUser(), it) }
                     .let { ResponseEntity.ok(it) }
 
-    @PostMapping("summarize")
+    @PostMapping("/summarize")
     fun summarize(@RequestParam("file") multipartFile: MultipartFile): ResponseEntity<Unit> {
         summarizeService.summarize(multipartFile)
         return ResponseEntity.ok().build()
