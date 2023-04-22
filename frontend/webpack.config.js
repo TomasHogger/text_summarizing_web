@@ -11,6 +11,7 @@ module.exports = (env) => {
         },
         plugins: [
             new HtmlWebpackPlugin({
+                favicon: "./src/favicon.png",
                 template: "src/index.html"
             }),
         ],
@@ -54,7 +55,7 @@ module.exports = (env) => {
             port: 5001,
             open: true,
             proxy: {
-                '/backend': {
+                '/api': {
                     target: env.BACKEND_URL || 'http://localhost:5000'
                 },
             }

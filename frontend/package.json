@@ -4,15 +4,22 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "start": "webpack-dev-server --mode development --env BACKEND_URL=$BACKEND_URL",
+    "start": "webpack-dev-server --mode development",
+    "start_with_backend_url": "webpack-dev-server --mode development --env BACKEND_URL=$BACKEND_URL",
     "build": "npm install && webpack --mode production"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@emotion/react": "^11.10.6",
+    "@emotion/styled": "^11.10.6",
+    "@mui/icons-material": "^5.11.16",
+    "@mui/material": "^5.12.1",
+    "@mui/x-data-grid": "^5.12.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-localization": "^1.0.19"
   },
   "devDependencies": {
     "@babel/core": "^7.21.0",
