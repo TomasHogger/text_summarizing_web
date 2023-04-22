@@ -17,6 +17,9 @@ class Controller(
         @Autowired val pageableValidator: PageableValidator,
         @Autowired val summarizeService: SummarizeService
 ) {
+    @GetMapping("/check_session")
+    fun checkSession() = ResponseEntity.ok().build<Unit>()
+
     @PostMapping("/registration")
     fun registration() = userService.createNewUser()
 

@@ -8,12 +8,25 @@ tags:
   - name: api
     description: Main api
 paths:
+  /api/check_session:
+    get:
+      tags:
+        - api
+      summary: Check session
+      description: Check session
+      responses:
+        '200':
+          description: Session success
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - cookieAuth: []
   /api/registration:
     post:
       tags:
         - api
-      summary: Registre new user
-      description: Registre new user
+      summary: Register new user
+      description: Register new user
       responses:
         '200':
           description: New user is created
@@ -81,8 +94,8 @@ paths:
     get:
       tags:
         - api
-      summary: Get all summirizing requests
-      description: Get all summirizing requests
+      summary: Get all summarizing requests
+      description: Get all summarizing requests
       parameters:
         - in: query
           name: page
@@ -101,7 +114,7 @@ paths:
           required: false
       responses:
         '200':
-          description: List of summirizing requests
+          description: List of summarizing requests
           content:
             application/json:
               schema:
