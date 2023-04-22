@@ -2,6 +2,8 @@ package text_summarizing
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.*
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
@@ -59,42 +61,50 @@ class SummarizeService(
         @Autowired val objectMapper: ObjectMapper,
         @Value("\${spring.kafka.producer.topic}") val produceTopic: String
 ) {
-    fun summarize(multipartFile: MultipartFile) =
-            multipartFile
-                    .bytes
-                    .let(DigestUtils::md5DigestAsHex)
-                    .let {
-                        SummarizedTextEntity(
-                                user = userService.getCurrentUser(),
-                                textHash = it,
-                                timeCreateUtc = Instant.now().toEpochMilli(),
-                                fileName = multipartFile.originalFilename ?: "<WITHOUT NAME>"
-                        )
-                    }
-                    .let(summarizedTextRep::save)
-                    .let { KafkaSummarizeRequest(it.id!!, multipartFile.bytes.let(::String)) }
-                    .let(objectMapper::writeValueAsString)
-                    .let { kafkaTemplate.send(produceTopic, it) }
-                    .let { }
+    val logger: Logger = LoggerFactory.getLogger(SummarizeService::class.java)
+
+    fun summarize(multipartFile: MultipartFile) {
+        multipartFile
+                .bytes
+                .let(DigestUtils::md5DigestAsHex)
+                .let {
+                    SummarizedTextEntity(
+                            user = userService.getCurrentUser(),
+                            textHash = it,
+                            timeCreateUtc = Instant.now().toEpochMilli(),
+                            fileName = multipartFile.originalFilename ?: "<WITHOUT NAME>"
+                    )
+                }
+                .let(summarizedTextRep::save)
+                .apply { logger.info("Text with hash $textHash is saved and has id $id") }
+                .let { it to KafkaSummarizeRequest(it.id!!, multipartFile.bytes.let(::String)) }
+                .let { it.first to objectMapper.writeValueAsString(it.second) }
+                .apply { kafkaTemplate.send(produceTopic, second) }
+                .apply { logger.info("Text with hash ${first.textHash} and id ${first.id} is sent") }
+    }
 
     @KafkaListener(topics = ["\${spring.kafka.consumer.topic}"])
-    fun consumeSummarizeResult(message: String) =
-            objectMapper
-                    .readValue(message, KafkaSummarizeResponse::class.java)
-                    .let {
-                        summarizedTextRep.findById(it.id).orElseThrow().apply {
-                            timeSummarizingUtc = Instant.now().toEpochMilli()
+    fun consumeSummarizeResult(message: String) {
+        logger.info("Get result from kafka $message")
+        objectMapper
+                .readValue(message, KafkaSummarizeResponse::class.java)
+                .let {
+                    summarizedTextRep.findById(it.id).orElseThrow().apply {
+                        timeSummarizingUtc = Instant.now().toEpochMilli()
 
-                            if (it.error) {
-                                summarizeStatus = SummarizeStatus.ERROR
-                            } else {
-                                summarizeStatus = SummarizeStatus.SUCCESS
-                                resultSummarizing = it.text
-                            }
+                        if (it.error) {
+                            logger.info("Result with id ${it.id} is failed")
+                            summarizeStatus = SummarizeStatus.ERROR
+                        } else {
+                            logger.info("Result with id ${it.id} is success")
+                            summarizeStatus = SummarizeStatus.SUCCESS
+                            resultSummarizing = it.text
                         }
                     }
-                    .let(summarizedTextRep::save)
-                    .let { }
+                }
+                .let(summarizedTextRep::save)
+                .apply { logger.info("Result with id $id is updated") }
+    }
 
 }
 

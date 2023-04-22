@@ -20,8 +20,9 @@ server.port: 5000
 
 logging:
   level:
+    text_summarizing: INFO
     org:
-      springframework: DEBUG
+      springframework: INFO
 
 springdoc:
   api-docs:
