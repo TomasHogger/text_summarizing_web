@@ -6,3 +6,4 @@
 /backend/.m2/
 /text_summarizer/docker_venv/
 /backend/backend.iml
+/frontend/dist/
