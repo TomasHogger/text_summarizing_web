@@ -5,8 +5,8 @@ spring:
     password: ${DATASOURCE_PWD:1234}
   servlet:
     multipart:
-      max-file-size: 20MB
-      max-request-size: 20MB
+      max-file-size: 1MB
+      max-request-size: 1MB
   kafka:
     bootstrap-servers: ${KAFKA_SERVER:localhost:9093}
     consumer:
