@@ -49,7 +49,7 @@ paths:
             Set-Cookie:
               schema:
                 type: string
-                example: JSESSIONID=abcde12345; Path=/; HttpOnly
+                example: TEXT_SUMMARIZE_JSESSIONID=abcde12345; Path=/; HttpOnly
         '403':
           description: User isn't found
   /api/summarize:
@@ -143,7 +143,7 @@ components:
     cookieAuth:
       type: apiKey
       in: cookie
-      name: JSESSIONID
+      name: TEXT_SUMMARIZE_JSESSIONID
   responses:
     UnauthorizedError:
       description: User isn't authenticated

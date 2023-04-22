@@ -16,13 +16,18 @@ spring:
     producer:
       topic: text_summarizing_request
 
-server.port: 5000
-
 logging:
   level:
     text_summarizing: INFO
     org:
       springframework: INFO
+
+server:
+  port: 5000
+  servlet:
+    session:
+      cookie:
+        name: TEXT_SUMMARIZE_JSESSIONID
 
 springdoc:
   api-docs:
