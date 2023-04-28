@@ -1,5 +1,5 @@
 import { TextField, MenuItem, Button, Typography, Link, CircularProgress, Snackbar, Alert, LinearProgress } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, GridFooterContainer, GridPagination } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react'
 import LocalizedStrings from 'react-localization';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -239,6 +239,17 @@ function LoginPage({setError, loggedIn}) {
     </div>
 }
 
+function PaginationWithReload({onReload, ...props}) {
+    return (
+      <GridFooterContainer>
+        <GridPagination {...props}/>
+        <Button onClick={onReload}>
+          <RefreshIcon style={{color: 'black'}}/>
+        </Button>
+      </GridFooterContainer>
+    );
+  }
+
 function MainComponent({setError}) {
     let [rows, setRows] = useState([]),
         [totalRows, setTotalRows] = useState(0),
@@ -252,21 +263,6 @@ function MainComponent({setError}) {
         get(`get_all_summarizing?page=${page}&pageSize=${pageSize}`)
             .then(resp => resp.json())
             .then(json => {
-                json.content.forEach(it => {
-                    let summarizeStatus;
-                    switch (it.summarizeStatus) {
-                        case 'PENDING':
-                            summarizeStatus = strings.pendingStatus;
-                            break;
-                        case 'SUCCESS':
-                            summarizeStatus = strings.successStatus;
-                            break;
-                        case 'ERROR':
-                            summarizeStatus = strings.errorStatus;
-                            break;
-                    }
-                    it.summarizeStatus = summarizeStatus;
-                });
                 setRows(json.content);
                 setTotalRows(json.totalElements);
             })
@@ -316,21 +312,29 @@ function MainComponent({setError}) {
         );
     }
 
-    const columns = [
-      { field: 'id', headerName: 'ID', width: 5, sortable: false },
-      { field: 'fileName', headerName: strings.fileName, width: 150, sortable: false },
-      { field: 'textHash', headerName: strings.textHash, width: 300, sortable: false },
-      { field: 'summarizeStatus', headerName: strings.summarizeStatus, width: 200, sortable: false },
-      { field: 'resultSummarizing', headerName: strings.resultSummarizing, flex: 1, sortable: false, renderCell: renderExpandableCell},
-    ];
-
     return <DataGrid
         slots={{
             loadingOverlay: LinearProgress,
         }}
         loading={pending}
         rows={rows}
-        columns={columns}
+        columns={[
+            { field: 'id', headerName: 'ID', width: 5, sortable: false },
+            { field: 'fileName', headerName: strings.fileName, width: 150, sortable: false },
+            { field: 'textHash', headerName: strings.textHash, width: 300, sortable: false },
+            { 
+                field: 'summarizeStatus',
+                headerName: strings.summarizeStatus,
+                width: 200,
+                sortable: false,
+                valueFormatter: (params) => ({
+                    'PENDING': strings.pendingStatus,
+                    'SUCCESS': strings.successStatus,
+                    'ERROR': strings.errorStatus
+                }[params.value])
+            },
+            { field: 'resultSummarizing', headerName: strings.resultSummarizing, flex: 1, sortable: false, renderCell: renderExpandableCell},
+        ]}
         pagination
         page={page}
         pageSize={pageSize}
@@ -343,18 +347,12 @@ function MainComponent({setError}) {
         }}
         components={{
             Toolbar: () => {
-                return <div id='gridToolbar'>
-                    <FilledButton component='label' sx={{color: 'black'}}>
-                        {strings.processFileButton}
-                        <input type='file' hidden onChange={handleFileChange} accept='.txt'/>
-                    </FilledButton>
-                    <div>
-                        <Button onClick={fetchRows} sx={{width: '20px'}}>
-                            <RefreshIcon style={{color: 'black'}}/>
-                        </Button>
-                    </div>
-                </div>
-            }
+                return <FilledButton component='label' sx={{color: 'black'}}>
+                    {strings.processFileButton}
+                    <input type='file' hidden onChange={handleFileChange} accept='.txt'/>
+                </FilledButton>
+            },
+            Pagination: (props) => <PaginationWithReload onReload={fetchRows} {...props}/>
         }}
         componentsProps={{
             pagination: {
