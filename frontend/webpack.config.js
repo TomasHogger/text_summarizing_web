@@ -56,7 +56,7 @@ module.exports = (env) => {
             open: true,
             proxy: {
                 '/api': {
-                    target: env.BACKEND_URL || 'http://localhost:5000'
+                    target: env.API_URL || 'http://localhost:5000'
                 },
             }
         },

@@ -39,14 +39,12 @@ services:
 
   backend:
     container_name: backend
-    image: maven:3.9-eclipse-temurin-20-alpine
+    extends:
+      file: docker-compose_builder.yml
+      service: backend_builder
     depends_on:
       - postgres
       - kafka
-    user: ${UID}
-    volumes:
-      - ./backend/:/project/
-    working_dir: /project/
     environment:
       DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
       DATASOURCE_USER: admin
@@ -65,12 +63,12 @@ services:
       - ./frontend/:/project/
     working_dir: /project/
     environment:
-      BACKEND_URL: http://backend:5000
+      API_URL: http://backend:5000
     ports:
       - "5001:5001"
     command: /bin/sh -c "
       npm install 
-      && npm run start_with_backend_url
+      && npm run start_with_api_url
       "
 
   text_summarizer:
@@ -93,14 +91,11 @@ services:
 
   documentation:
     container_name: documentation
-    image: local_node
-    build: ./images/node
-    user: ${UID}
-    volumes:
-      - ./documentation/:/project/
+    extends:
+      file: docker-compose_builder.yml
+      service: documentation_builder
     ports:
       - "5002:5002"
-    working_dir: /project/
     command: /bin/sh -c "
       npm install -f
       && npm run debug

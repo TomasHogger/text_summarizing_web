@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "webpack-dev-server --mode development",
-    "start_with_backend_url": "webpack-dev-server --mode development --env BACKEND_URL=$BACKEND_URL",
+    "start_with_api_url": "webpack-dev-server --mode development --env API_URL=$API_URL",
     "build": "npm install && webpack --mode production"
   },
   "keywords": [],

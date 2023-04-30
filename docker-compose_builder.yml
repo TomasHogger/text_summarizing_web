@@ -1,6 +1,28 @@
 version: "3.9"
 
 services:
+  frontend_builder:
+    container_name: frontend_builder
+    image: local_node
+    build: ./images/node
+    user: ${UID}
+    volumes:
+      - ./frontend/:/project/
+    working_dir: /project/
+    command: /bin/sh -c "
+      npm install
+      && npm run build
+      "
+
+  backend_builder:
+    container_name: backend_builder
+    image: maven:3.9-eclipse-temurin-20-alpine
+    user: ${UID}
+    volumes:
+      - ./backend/:/project/
+    working_dir: /project/
+    command: mvn clean package -DskipTests
+
   documentation_builder:
     container_name: documentation_builder
     image: local_node
