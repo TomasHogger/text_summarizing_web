@@ -3,8 +3,7 @@ version: "3.9"
 services:
   frontend_builder:
     container_name: frontend_builder
-    image: local_node
-    build: ./images/node
+    image: node:20.0-slim
     user: ${UID}
     volumes:
       - ./frontend/:/project/
@@ -22,16 +21,3 @@ services:
       - ./backend/:/project/
     working_dir: /project/
     command: mvn clean package -DskipTests
-
-  documentation_builder:
-    container_name: documentation_builder
-    image: local_node
-    build: ./images/node
-    user: ${UID}
-    volumes:
-      - ./documentation/:/project/
-    working_dir: /project/
-    command: /bin/sh -c "
-      npm install -f
-      && npm run build
-      "

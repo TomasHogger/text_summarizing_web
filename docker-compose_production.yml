@@ -35,12 +35,6 @@ services:
       file: docker-compose.yml
       service: text_summarizer
 
-  documentation:
-    extends:
-      file: docker-compose.yml
-      service: documentation
-
-
 networks:
   default:
     name: default_network
