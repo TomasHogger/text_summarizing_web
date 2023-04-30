@@ -58,7 +58,8 @@ services:
 
   frontend:
     container_name: frontend
-    image: node:16.19.1-alpine3.17
+    image: local_node
+    build: ./images/node
     user: ${UID}
     volumes:
       - ./frontend/:/project/
@@ -92,21 +93,17 @@ services:
 
   documentation:
     container_name: documentation
-    image: latex
-    build: images/latex
+    image: local_node
+    build: ./images/node
     user: ${UID}
     volumes:
       - ./documentation/:/project/
-    working_dir: /project/
     ports:
       - "5002:5002"
+    working_dir: /project/
     command: /bin/sh -c "
-      rm -rf out 
-      && mkdir out 
-      && pdflatex -output-directory out src/course_work.tex 
-      && echo Compiled 
-      && cd out 
-      && python -m SimpleHTTPServer 5002
+      npm install -f
+      && npm run debug
       "
 
 networks:

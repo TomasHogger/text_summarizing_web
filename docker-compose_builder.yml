@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  documentation_builder:
+    container_name: documentation_builder
+    image: local_node
+    build: ./images/node
+    user: ${UID}
+    volumes:
+      - ./documentation/:/project/
+    working_dir: /project/
+    command: /bin/sh -c "
+      npm install -f
+      && npm run build
+      "

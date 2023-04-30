@@ -7,3 +7,5 @@
 /text_summarizer/docker_venv/
 /backend/backend.iml
 /frontend/dist/
+/documentation/node_modules/
+/documentation/package-lock.json
